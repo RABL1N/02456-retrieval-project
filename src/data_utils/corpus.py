@@ -6,6 +6,7 @@ from src.data_utils.download_retrieval_datasets import get_fiqa_dataset, get_squ
 class Corpus:
     def __init__(self, dataset_name: str, base_dir: str):
         self.dataset_name = dataset_name
+        
         if not os.path.exists(f'{base_dir}/{self.dataset_name}'):
             raw_data_dir = f'{base_dir}/raw'
             os.makedirs(raw_data_dir, exist_ok=True)
@@ -18,7 +19,15 @@ class Corpus:
             print(f'Saved {self.dataset_name} dataset to path {base_dir}/{self.dataset_name}.')
             shutil.rmtree(f'{base_dir}/raw')
         else:
+            # rebuild relevant_ids on every run, not just when data is downloaded
+            # relevant_ids is the ground truth for retrieval: 
+            # a dictionary mapping each query id to the ids of the documents that answer it.
             self.ds = load_from_disk(f'{base_dir}/{self.dataset_name}')
+            self.relevant_ids = {
+            qid: dids
+            for split in self.ds.values()
+            for qid, dids in zip(split['query_id'], split['document_id'])
+            }
 
 
     @property
