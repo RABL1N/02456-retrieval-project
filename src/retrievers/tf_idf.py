@@ -122,9 +122,14 @@ class TFIDF(Retriever):
 
         # TODO: Add tf-idf code
 
+        documents = self.index.GetDocuments()
 
-
-
+        for doc_idx, document in enumerate(documents):
+            term_count = self.GetDocumentTermCounts(document)
+            max_term_count = max(term_count.values())
+            
+            for term, counts in term_count.items():
+                tfidf_matrix[doc_idx, self.term_to_index[term]] = (counts / max_term_count) * self.idf[term]
 
         
         return tfidf_matrix.tocsr()   # Convert to CSR format for efficient row slicing
@@ -138,14 +143,15 @@ class TFIDF(Retriever):
         Returns:
             csr_matrix: A sparse vector representation of the query
         """
+        for q in queries:
+            query_vocabulary = self.GetQueryVocabulary()
         query_vector = lil_matrix((len(queries), len(self.corpus_vocabulary)), dtype=np.float32)
+        
 
-        # TODO: add code
-
-
-
-
-
+        # for query_id, query in enumerate(queries):
+        #     term_count = self.GetDocumentTermCounts(query)
+        #     for term, counts in term_count.items():
+        #         query_vector[query_id, self.term_to_index[term]] = counts
 
         return query_vector.tocsr()
 
