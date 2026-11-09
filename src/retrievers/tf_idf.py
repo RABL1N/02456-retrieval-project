@@ -3,6 +3,7 @@ from src.retrievers.base_retriever import Retriever
 import numpy as np
 from scipy.sparse import lil_matrix
 
+from src.data_utils.query import Query
 
 class TFIDF(Retriever):
     def __init__(self, documents: list[dict] = None, index_path: str = None) -> None:
@@ -108,9 +109,28 @@ class TFIDF(Retriever):
         # raise NotImplementedError()
 
 
+    def GetQueryTermCounts(self, query: str):
+            """
+            Returns a dict on the form {term: num_occurences} for an input query.
+            """
+
+            terms = self.GetQueryVocabulary(query)
+            counts = []
+
+            for term in terms:
+                count = query.count(term)
+                counts.append(count)
+
+            term_counts = dict(zip(terms, counts))
+
+            return term_counts        
+
+            # raise NotImplementedError()
+
+
     def GetDocumentsTFIDFVectors(self):
         """
-        Returns a n_documents x n_terms matrix whose element (i, j) is the td-idf score of the j'th term in the i'th document.
+        Returns a n_documents x n_terms matrix whose element (i, j) is the tf-idf score of the j'th term in the i'th document.
         """
         # Create a mapping from terms to indices
         self.term_to_index = {term: idx for idx, term in enumerate(self.corpus_vocabulary)}
@@ -130,10 +150,10 @@ class TFIDF(Retriever):
             
             for term, counts in term_count.items():
                 tfidf_matrix[doc_idx, self.term_to_index[term]] = (counts / max_term_count) * self.idf[term]
-
         
         return tfidf_matrix.tocsr()   # Convert to CSR format for efficient row slicing
-    
+
+
     def QueryToVector(self, queries: list[str]):
         """ Converts a query or batch of queries into a sparse vector matching the vocab size with counts of how many times the term occurs.
         
@@ -143,19 +163,24 @@ class TFIDF(Retriever):
         Returns:
             csr_matrix: A sparse vector representation of the query
         """
-        for q in queries:
-            query_vocabulary = self.GetQueryVocabulary()
+            
         query_vector = lil_matrix((len(queries), len(self.corpus_vocabulary)), dtype=np.float32)
-        
 
-        # for query_id, query in enumerate(queries):
-        #     term_count = self.GetDocumentTermCounts(query)
-        #     for term, counts in term_count.items():
-        #         query_vector[query_id, self.term_to_index[term]] = counts
+        self.term_to_index = {term: idx for idx, term in enumerate(self.corpus_vocabulary)}
+
+        for query_id, query in enumerate(queries):
+            query_count = self.GetQueryTermCounts(query)
+            #print(f"Query {query_id}: {query_count}") 
+             
+            for query_term, count in query_count.items():
+                #print(f"Processing term '{query_term}' with count {count}")  # Debugging line
+                if query_term in self.term_to_index:    
+                    #print(f"Term '{query_term}' found in vocabulary at index {self.term_to_index[query_term]}")  # Debugging line
+                    query_vector[query_id, self.term_to_index[query_term]] = count
 
         return query_vector.tocsr()
 
-    #@time_func
+
     def CalculateScores(self, queries: list[str]):
         """Calculate scores for a query
         
