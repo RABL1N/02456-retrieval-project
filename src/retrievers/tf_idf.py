@@ -152,6 +152,8 @@ class TFIDF(Retriever):
 
         for doc_idx, document in enumerate(documents):
             term_count = self.GetDocumentTermCounts(document)
+            if not term_count:          # empty document -> leave its row as zeros
+                continue
             max_term_count = max(term_count.values())
             
             for term, counts in term_count.items():
