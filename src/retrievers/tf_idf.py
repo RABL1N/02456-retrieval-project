@@ -5,6 +5,8 @@ from scipy.sparse import lil_matrix
 
 from src.data_utils.query import Query
 
+import re
+
 class TFIDF(Retriever):
     def __init__(self, documents: list[dict] = None, index_path: str = None) -> None:
         super(TFIDF, self).__init__(documents, index_path)
@@ -21,8 +23,8 @@ class TFIDF(Retriever):
         Remove unwanted characters from text and lowercase
         """
         
-        return text.lower().split()
-        
+        # return text.lower().split()
+        return re.findall(r'[a-z0-9]+', text.lower())
         # raise NotImplementedError()
 
 
