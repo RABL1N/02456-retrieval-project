@@ -31,8 +31,7 @@ class TFIDF(Retriever):
         Returns all unique words in a query
         """
 
-        return list(set(self.PreprocessText(query)))
-
+        return sorted(set(self.PreprocessText(query))) # return sorted list
         #raise NotImplementedError()
 
 
@@ -41,18 +40,27 @@ class TFIDF(Retriever):
         Returns all unique words in a document
         """
 
-        return set(self.PreprocessText(document.GetText()))
-
+        return sorted(set(self.PreprocessText(document.GetText()))) # return sorted list
         # raise NotImplementedError()
     
 
-    def GetCorpusVocabulary(self) -> set[str]:
+    # def GetCorpusVocabulary(self) -> set[str]:
+    #     """
+    #     Returns all unique words in ALL documents.
+    #     """
+    #     # Use map function for more efficient processing
+    #     processed_texts = map(lambda doc: set(self.PreprocessText(doc.GetText())), self.index.GetDocuments())
+    #     corpus_vocabulary = set().union(*processed_texts)
+    #     return corpus_vocabulary
+
+
+    def GetCorpusVocabulary(self) -> list[str]: # changed this from set to list to make order deterministic
         """
         Returns all unique words in ALL documents.
         """
         # Use map function for more efficient processing
         processed_texts = map(lambda doc: set(self.PreprocessText(doc.GetText())), self.index.GetDocuments())
-        corpus_vocabulary = set().union(*processed_texts)
+        corpus_vocabulary = sorted(set().union(*processed_texts))
         return corpus_vocabulary
 
 
@@ -96,13 +104,12 @@ class TFIDF(Retriever):
         """
 
         terms = self.GetDocumentVocabulary(document)
-        counts = []
+        tokens = self.PreprocessText(document.GetText())
+
+        term_counts = {}
 
         for term in terms:
-            count = document.GetText().count(term)
-            counts.append(count)
-
-        term_counts = dict(zip(terms, counts))
+            term_counts[term] = tokens.count(term)   # list.count -> whole-word matches
 
         return term_counts        
 
@@ -115,13 +122,12 @@ class TFIDF(Retriever):
             """
 
             terms = self.GetQueryVocabulary(query)
-            counts = []
+            tokens = self.PreprocessText(query)
+
+            term_counts = {}
 
             for term in terms:
-                count = query.count(term)
-                counts.append(count)
-
-            term_counts = dict(zip(terms, counts))
+                term_counts[term] = tokens.count(term)
 
             return term_counts        
 
