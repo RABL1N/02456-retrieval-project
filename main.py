@@ -7,8 +7,9 @@ from src.evaluation.metrics import Evaluate
 
 from src.retrievers.tf_idf import TFIDF
 from src.retrievers.bm25 import BM25
+from src.retrievers.dpr import DPR
 
-@hydra.main(config_path='config', config_name='fiqa_experiment.yaml', version_base=None)
+@hydra.main(config_path='config', config_name='config', version_base=None)
 def main(cfg):
     ### Load a dataset
     corpus = Corpus(dataset_name=cfg.dataset.name, base_dir=f'{cfg.base_path}/retrieval_data')
@@ -35,7 +36,7 @@ def main(cfg):
                     ]
     
     ### Initialize Retriever class
-    retrievers = {'tf-idf': TFIDF, 'bm25': BM25}
+    retrievers = {'tf-idf': TFIDF, 'bm25': BM25, 'dpr': DPR}
     retriever = retrievers[cfg.retriever.method](documents=corpus.all_documents)
     
     ### Retrieve top-k relevant queries
