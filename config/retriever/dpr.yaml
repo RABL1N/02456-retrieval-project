@@ -1,1 +1,5 @@
 method: "dpr"
+
+defaults:
+  - /model@_global_.model.query_encoder: bert_pretrained
+  - /model@_global_.model.doc_encoder: bert_pretrained

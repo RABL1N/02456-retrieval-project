@@ -1,0 +1,1 @@
+pooling_type: 'cls' # mean | cls | max

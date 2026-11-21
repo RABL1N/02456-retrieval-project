@@ -1,0 +1,12 @@
+defaults:
+  - _self_
+  - dataset: fiqa
+  - retriever: dpr
+
+device: cpu
+base_path: "."
+top_k: 10
+
+hydra:
+  run:
+    dir: outputs/${hydra:runtime.choices.dataset}/${hydra:runtime.choices.retriever}
