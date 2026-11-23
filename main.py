@@ -37,7 +37,12 @@ def main(cfg):
     
     ### Initialize Retriever class
     retrievers = {'tf-idf': TFIDF, 'bm25': BM25, 'dpr': DPR}
-    retriever = retrievers[cfg.retriever.method](documents=corpus.all_documents)
+
+    if cfg.retriever.method == 'dpr':
+        retriever = DPR(cfg, documents=corpus.all_documents)
+        retriever.encode_corpus()
+    else:
+        retriever = retrievers[cfg.retriever.method](documents=corpus.all_documents)
     
     ### Retrieve top-k relevant queries
     train_relevancies = retrieveQueryAndGetRelevancies(retriever, train_queries, k=cfg.top_k)
