@@ -43,13 +43,13 @@ class TransformerEncoder(nn.Module):
         Returns: A pooled vector of shape batch_size x emb_dim
         """
         if self.cfg.model.pooling_type == 'cls':
-            raise NotImplementedError()
+            return x[:,0,:]
         
         elif self.cfg.model.pooling_type == 'max':
-            raise NotImplementedError()
+            return torch.max(x, dim=1)[0]
         
         elif self.cfg.model.pooling_type == 'mean':
-            raise NotImplementedError()
+            return torch.mean(x,dim=1)
 
     def forward(self, x: torch.tensor) -> torch.tensor:
         """
