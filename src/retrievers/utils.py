@@ -21,3 +21,14 @@ def retrieveQueryAndGetRelevancies(model: Retriever, queries: list[Query], k: in
                 query_relevancies.append(False)
         relevancies.append(query_relevancies)
     return relevancies
+
+import torch
+
+def resolve_device(name: str = "auto") -> torch.device:
+    if name != "auto":
+        return torch.device(name)
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
