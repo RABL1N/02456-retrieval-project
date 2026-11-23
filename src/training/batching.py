@@ -1,44 +1,33 @@
+
+import random
 import torch
 
-# def build_batch(rows):
-#     """
-#     @param rows: a slice of corpus.train, e.g. corpus.train[0:10] (dict of lists)
-#     Returns: query texts, unique document texts (all positives of the batch), (B_q, B_d) bool mask
-#     """
-#     q_texts = rows['question']
-
-#     col = {}                                  # document_id -> column index
-#     d_texts = []
-#     for dids, texts in zip(rows['document_id'], rows['text']):
-#         for did, txt in zip(dids, texts):
-#             if did not in col:
-#                 col[did] = len(d_texts)
-#                 d_texts.append(txt)
-
-#     pos_mask = torch.zeros(len(q_texts), len(d_texts), dtype=torch.bool)
-#     for i, dids in enumerate(rows['document_id']):
-#         for did in dids:
-#             pos_mask[i, col[did]] = True
-
-#     return q_texts, d_texts, pos_mask
-
-def build_batch(rows):
+def build_batch(rows, max_pos=None):
+    """
+    @param rows: a slice of corpus.train (dict of lists)
+    @param max_pos: if set, use at most this many randomly chosen positives per query (caps memory)
+    Returns: query texts, unique document texts, (B_q, B_d) bool positive mask
+    """
     queries_text = rows['question']
-    unique_documents = []
-    unique_documents_text = []
+    unique_documents, unique_documents_text = [], []
 
     for i, doc_list in enumerate(rows['document_id']):
-        for j, doc_id in enumerate(doc_list):
+        idx = list(range(len(doc_list)))
+        if max_pos is not None and len(idx) > max_pos:
+            idx = random.sample(idx, max_pos)
+        for j in idx:
+            doc_id = doc_list[j]
             if doc_id not in unique_documents:
                 unique_documents.append(doc_id)
                 unique_documents_text.append(rows['text'][i][j])
 
-    mask = torch.zeros((len(rows['query_id']), len(unique_documents)), dtype=torch.bool)
+    document_to_idx = {doc_id: k for k, doc_id in enumerate(unique_documents)}
+    mask = torch.zeros((len(queries_text), len(unique_documents)), dtype=torch.bool)
 
-    document_to_idx = {doc_id: idx for idx, doc_id in enumerate(unique_documents)}
-
+    # mark every positive of query i that is present in the batch (sampled or not)
     for i, doc_list in enumerate(rows['document_id']):
         for doc_id in doc_list:
-            mask[i, document_to_idx[doc_id]] = True
+            if doc_id in document_to_idx:
+                mask[i, document_to_idx[doc_id]] = True
 
     return queries_text, unique_documents_text, mask

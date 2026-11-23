@@ -10,3 +10,12 @@ top_k: 10
 hydra:
   run:
     dir: outputs/${hydra:runtime.choices.dataset}/${hydra:runtime.choices.retriever}
+
+train:
+  batch_size: 8
+  lr: 2e-5
+  epochs: 1
+  max_length: 256
+  gradient_checkpointing: true
+  log_every: 50
+  max_positives: 3

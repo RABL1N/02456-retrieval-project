@@ -8,17 +8,6 @@ from transformers import BertTokenizer, BertModel
 import torch
 
 class TransformerEncoder(nn.Module):
-    
-    # def __init__(self, n_layers: int, n_heads: int, emb_dim: int, hidden_dim: int, feed_forward_dim: int):
-        
-    #     self.n_layers = n_layers
-    #     self.n_heads = n_heads
-    #     self.emb_dim = emb_dim
-    #     self.hidden_dim = hidden_dim
-    #     self.feed_forward_dim = feed_forward_dim
-
-    #     self.pooling_type = pooling_type
-    #     self.setup_model()
 
     def __init__(self, pooling_type: str):
 
@@ -37,22 +26,29 @@ class TransformerEncoder(nn.Module):
 
         # raise NotImplementedError()
 
-    def pool(self, x):
+    def pool(self, x, attention_mask):
         """
-        Given a batch_size x sequence_length x emb_dim tensor, pool the input along the sequence_length dimension 
-        Returns: A pooled vector of shape batch_size x emb_dim
+        @param x: (B, L, D) last hidden states
+        @param attention_mask: (B, L) 1 = real token, 0 = padding
+        Returns: (B, D)
         """
-        if self.cfg.model.pooling_type == 'cls':
-            return x[:,0,:]
-        
-        elif self.cfg.model.pooling_type == 'max':
-            return torch.max(x, dim=1)[0]
-        
-        elif self.cfg.model.pooling_type == 'mean':
-            return torch.mean(x,dim=1)
+        if self.pooling_type == 'cls':
+            return x[:, 0, :]
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
+        mask = attention_mask.unsqueeze(-1).to(x.dtype)           # (B, L, 1)
+
+        if self.pooling_type == 'mean':
+            return (x * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
+
+        if self.pooling_type == 'max':
+            return x.masked_fill(mask == 0, float('-inf')).max(dim=1).values
+
+        raise ValueError(f'Unknown pooling_type: {self.pooling_type}')
+
+    def forward(self, inputs):
         """
-        Run a forward pass on the model
+        @param inputs: tokenizer output (dict of tensors already on the model's device)
+        Returns: (B, D) pooled embeddings
         """
-        raise NotImplementedError()
+        out = self.model(**inputs)
+        return self.pool(out.last_hidden_state, inputs['attention_mask'])

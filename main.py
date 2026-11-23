@@ -1,6 +1,5 @@
 import hydra
 from src.data_utils.corpus import Corpus
-from src.retrievers.tf_idf import TFIDF
 from src.data_utils.query import Query
 from src.retrievers.utils import retrieveQueryAndGetRelevancies
 from src.evaluation.metrics import Evaluate
@@ -8,6 +7,10 @@ from src.evaluation.metrics import Evaluate
 from src.retrievers.tf_idf import TFIDF
 from src.retrievers.bm25 import BM25
 from src.retrievers.dpr import DPR
+
+from src.training.trainer import Trainer
+import torch
+import os
 
 @hydra.main(config_path='config', config_name='config', version_base=None)
 def main(cfg):
@@ -40,7 +43,11 @@ def main(cfg):
 
     if cfg.retriever.method == 'dpr':
         retriever = DPR(cfg, documents=corpus.all_documents)
-        retriever.encode_corpus()
+        Trainer(cfg).train(retriever, corpus.train, corpus.val)
+
+        os.makedirs('outputs/models', exist_ok=True)
+        torch.save(retriever.state_dict(), 'outputs/models/dpr_trained.pt')
+        retriever.encode_corpus(cache_path='outputs/embeddings/fiqa_trained_mean_512.pt')   # new name → encodes fresh
     else:
         retriever = retrievers[cfg.retriever.method](documents=corpus.all_documents)
     
@@ -64,3 +71,4 @@ if __name__ == '__main__':
 # We can run the experiments with Hydra 
 # .venv/bin/python main.py retriever=bm25
 # .venv/bin/python main.py retriever=tf_idf
+# .venv/bin/python main.py retriever=dpr

@@ -1,4 +1,6 @@
 method: "dpr"
+similarity: cosine      # cosine | dot
+temperature: 0.05       # only used when similarity == cosine
 
 defaults:
   - /model@_global_.model.query_encoder: bert_pretrained
