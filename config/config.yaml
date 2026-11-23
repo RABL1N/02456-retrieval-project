@@ -3,7 +3,7 @@ defaults:
   - dataset: fiqa
   - retriever: dpr
 
-device: cpu
+device: auto   # auto | cuda | mps | cpu
 base_path: "."
 top_k: 10
 
