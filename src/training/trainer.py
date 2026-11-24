@@ -1,3 +1,4 @@
+import os
 import torch
 from src.training.loss import DPRLoss
 from src.training.batching import build_batch
@@ -22,7 +23,7 @@ class Trainer:
         losses = [self._batch_loss(dpr, ds[s:s + B]).item() for s in range(0, len(ds), B)]
         return sum(losses) / len(losses)
 
-    def train(self, dpr, train_ds, val_ds=None):
+    def train(self, dpr, train_ds, val_ds=None, save_dir=None):
         """
         @param dpr: DPR model (nn.Module containing both encoders)
         @param train_ds: corpus.train
@@ -56,4 +57,7 @@ class Trainer:
             if val_ds is not None:
                 print(f'epoch {epoch} val loss {self.evaluate_loss(dpr, val_ds):.4f}')
 
+            if save_dir is not None:
+                os.makedirs(save_dir, exist_ok=True)
+                torch.save(dpr.state_dict(), f'{save_dir}/epoch{epoch + 1}.pt')
         dpr.eval()

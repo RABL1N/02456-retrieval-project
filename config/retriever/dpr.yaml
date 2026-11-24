@@ -1,6 +1,7 @@
 method: "dpr"
 similarity: cosine      # cosine | dot
 temperature: 0.05       # only used when similarity == cosine
+index_max_length: 512   # document length when encoding the corpus for retrieval (BERT max: 512)
 
 defaults:
   - /model@_global_.model.query_encoder: bert_pretrained

@@ -42,12 +42,12 @@ def main(cfg):
     retrievers = {'tf-idf': TFIDF, 'bm25': BM25, 'dpr': DPR}
 
     if cfg.retriever.method == 'dpr':
+        run = f'ep{cfg.train.epochs}_len{cfg.train.max_length}_{cfg.retriever.similarity}'
         retriever = DPR(cfg, documents=corpus.all_documents)
-        Trainer(cfg).train(retriever, corpus.train, corpus.val)
-
-        os.makedirs('outputs/models', exist_ok=True)
-        torch.save(retriever.state_dict(), 'outputs/models/dpr_trained.pt')
-        retriever.encode_corpus(cache_path='outputs/embeddings/fiqa_trained_mean_512.pt')   # new name → encodes fresh
+        Trainer(cfg).train(retriever, corpus.train, corpus.val, save_dir=f'outputs/models/{run}')
+        L = cfg.retriever.index_max_length
+        retriever.encode_corpus(max_length=L)                              # no cache: always fresh weights
+        retriever.save_embeddings(f'outputs/embeddings/{run}_{L}.pt', L)
     else:
         retriever = retrievers[cfg.retriever.method](documents=corpus.all_documents)
     
