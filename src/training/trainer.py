@@ -33,6 +33,7 @@ class Trainer:
             dpr.query_encoder.model.gradient_checkpointing_enable()
             dpr.doc_encoder.model.gradient_checkpointing_enable()
 
+        torch.manual_seed(self.cfg.train.get('seed', 0))       # reproducible shuffling / dropout
         opt = torch.optim.AdamW(dpr.parameters(), lr=self.cfg.train.lr)
         B = self.cfg.train.batch_size
 

@@ -25,12 +25,14 @@ class DPR(nn.Module, Retriever):
         self.device = resolve_device(self.cfg.device)
 
         self.query_encoder = TransformerEncoder(
-            pooling_type=self.cfg.model.query_encoder.pooling_type
+            pooling_type=self.cfg.model.query_encoder.pooling_type,
+            implementation=self.cfg.model.query_encoder.get('implementation', 'hf'),
         )
         self.query_encoder.to(self.device)
 
         self.doc_encoder = TransformerEncoder(
-            pooling_type=self.cfg.model.doc_encoder.pooling_type
+            pooling_type=self.cfg.model.doc_encoder.pooling_type,
+            implementation=self.cfg.model.doc_encoder.get('implementation', 'hf'),
         )
         self.doc_encoder.to(self.device)
 

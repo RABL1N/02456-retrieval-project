@@ -1,1 +1,2 @@
-pooling_type: 'mean' # mean | cls | max
+pooling_type: 'mean' # mean | cls | max
+implementation: 'own' # own = our BertEncoder (encoder.py) with BERT weights | hf = Hugging Face BertModel
